@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Panel de cocina</title>
+  <meta name="theme-color" content="#f3ede3">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="cabecera">
+    <div class="reloj">
+      <div id="hora" class="hora">--:--</div>
+      <div id="fecha" class="fecha"></div>
+    </div>
+    <div id="tiempo" class="tiempo" aria-live="polite"></div>
+    <nav class="acciones">
+      <span id="estado" class="estado" hidden>Sin conexión</span>
+      <span id="modo" class="modo" hidden>Modo local</span>
+      <a id="btn-compra" class="btn" href="#" rel="noopener">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2M9.5 20.5h.01M17 20.5h.01"/></svg>
+        Compra
+      </a>
+      <button id="btn-recetas" class="btn" type="button">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM13 4h5.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H13z"/></svg>
+        Recetas
+      </button>
+      <button id="btn-ver" class="btn btn-yt" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg>
+        Ver
+      </button>
+      <button id="btn-recargar" class="btn btn-icono" type="button" aria-label="Recargar">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>
+      </button>
+      <button id="btn-salir" class="btn btn-icono" type="button" aria-label="Cerrar sesión" hidden>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ── Panel principal ─────────────────────────────────── -->
+  <main id="panel" class="panel">
+    <section class="tarjeta" id="t-agenda" aria-labelledby="h-agenda">
+      <header class="tarjeta-cab">
+        <h2 id="h-agenda">Agenda</h2>
+        <div id="agenda-leyenda" class="leyenda"></div>
+      </header>
+      <ul class="lista agenda" id="l-agenda"><li class="vacio">Cargando…</li></ul>
+    </section>
+
+    <div class="columna">
+      <section class="tarjeta" id="t-tareas" aria-labelledby="h-tareas">
+        <header class="tarjeta-cab">
+          <h2 id="h-tareas">Tareas <span class="contador" id="n-tareas"></span></h2>
+          <div>
+            <button class="btn-texto" type="button" data-limpiar="tareas" hidden>Quitar hechas</button>
+            <button class="btn-texto" type="button" id="btn-editar-tareas">Editar</button>
+          </div>
+        </header>
+        <form class="nuevo nuevo-tarea" data-lista="tareas">
+          <input name="texto" placeholder="Nueva tarea…" autocomplete="off" enterkeyhint="send" aria-label="Añadir tarea">
+          <select id="repetir-tarea" aria-label="Repetir"><option value="">Una vez</option></select>
+          <button aria-label="Añadir">+</button>
+        </form>
+        <ul class="lista" id="l-tareas"></ul>
+      </section>
+
+      <section class="tarjeta" id="t-notas" aria-labelledby="h-notas">
+        <header class="tarjeta-cab">
+          <h2 id="h-notas">Notas <span class="contador" id="n-notas"></span></h2>
+        </header>
+        <form class="nuevo" data-lista="notas">
+          <input name="texto" placeholder="Apunta algo…" autocomplete="off" enterkeyhint="send" aria-label="Añadir nota">
+          <button aria-label="Añadir">+</button>
+        </form>
+        <ul class="lista lista-notas" id="l-notas"></ul>
+      </section>
+    </div>
+
+    <div class="columna">
+      <section class="tarjeta" id="t-menu" aria-labelledby="h-menu">
+        <header class="tarjeta-cab">
+          <h2 id="h-menu">Menú de la semana</h2>
+          <button class="btn-texto" type="button" id="btn-vaciar-menu">Vaciar</button>
+        </header>
+        <div class="menu-envoltura">
+          <table class="menu">
+            <thead><tr><th></th><th scope="col">Comida</th><th scope="col">Cena</th></tr></thead>
+            <tbody id="menu-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="tarjeta" id="t-temp" aria-labelledby="h-temp">
+        <header class="tarjeta-cab">
+          <h2 id="h-temp">Temporizadores</h2>
+        </header>
+        <div class="presets" id="presets">
+          <form id="timer-libre" class="timer-libre">
+            <input name="minutos" type="text" inputmode="decimal" placeholder="min" aria-label="Minutos" autocomplete="off">
+            <button aria-label="Iniciar temporizador">▶</button>
+          </form>
+        </div>
+        <ul class="timers"></ul>
+      </section>
+    </div>
+  </main>
+
+  <!-- ── Recetas ─────────────────────────────────────────── -->
+  <main id="vista-recetas" class="recetas" hidden>
+    <aside class="tarjeta recetas-lista">
+      <header class="tarjeta-cab">
+        <h2>Recetas</h2>
+        <button class="btn-texto" type="button" id="btn-nueva-receta">+ Nueva</button>
+      </header>
+      <input id="buscar-receta" class="buscar" type="search" placeholder="Buscar por nombre o ingrediente…" autocomplete="off">
+      <button class="btn btn-semana" type="button" id="btn-semana">Ingredientes de la semana</button>
+      <ul class="lista" id="l-recetas"></ul>
+    </aside>
+    <article class="tarjeta receta-detalle" id="receta-detalle"></article>
+  </main>
+
+  <!-- ── Modo cocina ─────────────────────────────────────── -->
+  <div id="cocina" class="cocina" hidden>
+    <header class="cocina-cab">
+      <div>
+        <div id="cocina-titulo" class="cocina-titulo"></div>
+        <div id="cocina-progreso" class="cocina-progreso"></div>
+      </div>
+      <div class="cocina-botones">
+        <button id="cocina-ver-ing" class="btn" type="button">Ingredientes</button>
+        <button id="cocina-cerrar" class="btn btn-icono" type="button" aria-label="Salir del modo cocina">×</button>
+      </div>
+    </header>
+    <div class="cocina-barra"><i id="cocina-barra"></i></div>
+    <div class="cocina-cuerpo">
+      <section id="cocina-paso" class="cocina-paso"></section>
+      <aside class="cocina-lateral">
+        <h3>Ingredientes</h3>
+        <ul id="cocina-ingredientes" class="ingredientes"></ul>
+      </aside>
+    </div>
+    <ul class="timers timers-cocina"></ul>
+    <footer class="cocina-pie">
+      <button id="cocina-ant" class="btn cocina-nav" type="button">‹ Anterior</button>
+      <button id="cocina-sig" class="btn btn-yt cocina-nav" type="button">Siguiente ›</button>
+    </footer>
+  </div>
+
+  <!-- ── Apps de vídeo ───────────────────────────────────── -->
+  <div id="hoja-ver" class="hoja" hidden>
+    <div class="hoja-caja" role="dialog" aria-modal="true" aria-labelledby="h-ver">
+      <h2 id="h-ver">¿Qué ponemos?</h2>
+      <div id="apps-ver" class="apps-ver"></div>
+    </div>
+  </div>
+
+  <datalist id="lista-recetas"></datalist>
+  <div id="aviso" class="aviso" role="status" hidden></div>
+
+  <div id="login" class="login" hidden>
+    <form class="login-caja">
+      <h1>Panel de cocina</h1>
+      <p>Entra con vuestra cuenta para sincronizar.</p>
+      <label>Email <input name="email" type="email" autocomplete="username" required></label>
+      <label>Contraseña <input name="password" type="password" autocomplete="current-password" required></label>
+      <p id="login-error" class="login-error" role="alert"></p>
+      <button class="btn btn-yt">Entrar</button>
+    </form>
+  </div>
+</body>
+</html>
