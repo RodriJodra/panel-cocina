@@ -7,12 +7,12 @@ export const uid = () =>
   Date.now().toString(36) + Math.random().toString(36).slice(2);
 
 const CLAVE_LOCAL = 'panel-cocina:datos';
-const VACIO = () => ({ items: [], menu: [], recetas: [] });
+const VACIO = () => ({ items: [], menu: [], recetas: [], hechos: [] });
 
 function leerLocal() {
   try {
     const d = JSON.parse(localStorage.getItem(CLAVE_LOCAL));
-    return { items: d?.items ?? [], menu: d?.menu ?? [], recetas: d?.recetas ?? [] };
+    return { items: d?.items ?? [], menu: d?.menu ?? [], recetas: d?.recetas ?? [], hechos: d?.hechos ?? [] };
   } catch {
     return VACIO();
   }
@@ -100,6 +100,24 @@ export function createLocalStore() {
         d.recetas = d.recetas.filter((x) => x.id !== id);
       });
     },
+    async addHecho({ tarea_id, texto, persona }) {
+      cambiar((d) => {
+        d.hechos.push({ id: uid(), tarea_id, texto, persona, fecha: ahora() });
+        const limite = Date.now() - 400 * 86400000;
+        d.hechos = d.hechos.filter((h) => new Date(h.fecha).getTime() > limite);
+      });
+    },
+    async removeHecho(id) {
+      cambiar((d) => {
+        d.hechos = d.hechos.filter((h) => h.id !== id);
+      });
+    },
+    async deshacerHecho(tarea_id) {
+      cambiar((d) => {
+        const ultimo = d.hechos.filter((h) => h.tarea_id === tarea_id).sort((a, b) => b.fecha.localeCompare(a.fecha))[0];
+        if (ultimo) d.hechos = d.hechos.filter((h) => h.id !== ultimo.id);
+      });
+    },
     async agenda() {
       throw new NecesitaSupabase();
     },
@@ -153,12 +171,14 @@ export async function createSupabaseStore({ supabaseUrl, supabaseAnonKey }) {
       await sb.auth.signOut();
     },
     async load() {
-      const [items, menu, recetas] = await Promise.all([
+      const desde = new Date(Date.now() - 120 * 86400000).toISOString();
+      const [items, menu, recetas, hechos] = await Promise.all([
         sb.from('items').select('id,lista,texto,hecho,asignado,repetir,proxima,creado').order('creado'),
         sb.from('menu').select('dia,comida,texto'),
         sb.from('recetas').select('*').order('titulo'),
+        sb.from('hechos').select('id,tarea_id,texto,persona,fecha').gte('fecha', desde).order('fecha'),
       ]);
-      return { items: ok(items), menu: ok(menu), recetas: ok(recetas) };
+      return { items: ok(items), menu: ok(menu), recetas: ok(recetas), hechos: ok(hechos) };
     },
     async addItems(lista, textos, extra = {}) {
       const filas = textos.map((texto) => ({
@@ -195,6 +215,16 @@ export async function createSupabaseStore({ supabaseUrl, supabaseAnonKey }) {
     async deleteReceta(id) {
       ok(await sb.from('recetas').delete().eq('id', id));
     },
+    async addHecho({ tarea_id, texto, persona }) {
+      ok(await sb.from('hechos').insert({ tarea_id, texto, persona }));
+    },
+    async removeHecho(id) {
+      ok(await sb.from('hechos').delete().eq('id', id));
+    },
+    async deshacerHecho(tarea_id) {
+      const filas = ok(await sb.from('hechos').select('id').eq('tarea_id', tarea_id).order('fecha', { ascending: false }).limit(1));
+      if (filas.length) ok(await sb.from('hechos').delete().eq('id', filas[0].id));
+    },
     async agenda() {
       return funcion('calendario');
     },
@@ -204,7 +234,7 @@ export async function createSupabaseStore({ supabaseUrl, supabaseAnonKey }) {
     onChange(fn) {
       canal?.unsubscribe();
       canal = sb.channel('panel-cocina');
-      for (const table of ['items', 'menu', 'recetas']) {
+      for (const table of ['items', 'menu', 'recetas', 'hechos']) {
         canal.on('postgres_changes', { event: '*', schema: 'public', table }, fn);
       }
       canal.subscribe();

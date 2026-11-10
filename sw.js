@@ -1,6 +1,6 @@
 // Service worker: permite instalar la app y abrirla sin conexión.
 // Al cambiar archivos, sube el número de versión para forzar la actualización.
-const VERSION = 'panel-cocina-v4';
+const VERSION = 'panel-cocina-v5';
 const ARCHIVOS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const ARCHIVOS = [
   './store.js',
   './config.js',
   './util.js',
+  './reparto.js',
   './temporizadores.js',
   './agenda.js',
   './recetas.js',

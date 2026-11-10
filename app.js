@@ -6,6 +6,7 @@ import {
 import { desbloquearAudio, iniciarTemporizadores } from './temporizadores.js';
 import { iniciarAgenda } from './agenda.js';
 import { abrirRecetas, actualizarRecetas, iniciarRecetas, recetaPorTitulo } from './recetas.js';
+import { actualizarReparto, iniciarReparto } from './reparto.js';
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const COMIDAS = [['comida', 'Comida'], ['cena', 'Cena']];
@@ -26,7 +27,7 @@ export const REPETICIONES = {
 const REPETICIONES_CORTO = { d1: 'Diaria', d2: 'Cada 2 días', d3: 'Cada 3 días', s1: 'Semanal', s2: 'Quincenal', m1: 'Mensual' };
 
 let store = null;
-let state = { items: [], menu: [], recetas: [] };
+let state = { items: [], menu: [], recetas: [], hechos: [] };
 let arrancado = false;
 
 const hoyIndice = () => (new Date().getDay() + 6) % 7; // lunes = 0
@@ -94,6 +95,7 @@ function render() {
   renderNotas();
   renderMenu();
   actualizarRecetas();
+  actualizarReparto();
 }
 
 function renderTareas() {
@@ -121,13 +123,29 @@ function renderTareas() {
 
 function tareaEl(item, hoy) {
   const futura = !pendienteHoy(item, hoy);
-  const completar = () => {
+  const completar = async () => {
+    // desmarcar una tarea normal: se borra también su último registro
+    if (!item.repetir && item.hecho) {
+      return accion(async () => {
+        await store.updateItem(item.id, { hecho: false });
+        await store.deshacerHecho(item.id);
+      });
+    }
+    const persona = await preguntarQuien(item);
+    if (persona === undefined) return; // cancelado
+    const registrar = () => store.addHecho({ tarea_id: item.id, texto: item.texto, persona });
     if (item.repetir) {
       const proxima = siguienteFecha(item.repetir, item.proxima, hoy);
       aviso(`Hecho. Vuelve ${diasEntre(hoy, proxima) === 1 ? 'mañana' : `el ${fechaCorta(proxima)}`}.`);
-      return accion(() => store.updateItem(item.id, { proxima, hecho: false }));
+      return accion(async () => {
+        await store.updateItem(item.id, { proxima, hecho: false });
+        await registrar();
+      });
     }
-    return accion(() => store.updateItem(item.id, { hecho: !item.hecho }));
+    return accion(async () => {
+      await store.updateItem(item.id, { hecho: true });
+      await registrar();
+    });
   };
 
   let detalle = null;
@@ -155,7 +173,7 @@ function tareaEl(item, hoy) {
       'button',
       {
         class: 'persona',
-        dataset: { p: indice >= 0 ? String(indice % 2) : 'nadie' },
+        dataset: { p: indice >= 0 ? String(indice) : 'nadie' },
         'aria-label': 'Cambiar quién se encarga',
         onclick: () => {
           const opciones = [null, ...CONFIG.personas];
@@ -389,6 +407,43 @@ async function pedirWakeLock() {
   }
 }
 
+// ── ¿quién lo ha hecho? ──────────────────────────────────────
+
+/** Pregunta quién ha hecho la tarea. Devuelve el nombre, 'Los dos', o undefined si se cancela. */
+function preguntarQuien(item) {
+  const hoja = $('#hoja-quien');
+  $('#quien-tarea').textContent = item.texto;
+  return new Promise((resolver) => {
+    const terminar = (valor) => {
+      hoja.hidden = true;
+      hoja.onclick = null;
+      resolver(valor);
+    };
+    const opciones = [...CONFIG.personas, 'Los dos'];
+    $('#quien-opciones').replaceChildren(
+      ...opciones.map((nombre, i) =>
+        el(
+          'button',
+          {
+            class: `quien-opcion${nombre === item.asignado ? ' sugerida' : ''}`,
+            type: 'button',
+            dataset: { p: String(i) },
+            onclick: () => terminar(nombre),
+          },
+          el('span', { class: 'punto', 'aria-hidden': 'true' }),
+          nombre,
+          nombre === item.asignado ? el('small', {}, 'le tocaba') : null,
+        ),
+      ),
+    );
+    $('#quien-cancelar').onclick = () => terminar(undefined);
+    hoja.onclick = (e) => {
+      if (e.target === hoja) terminar(undefined);
+    };
+    hoja.hidden = false;
+  });
+}
+
 // ── apps de vídeo ────────────────────────────────────────────
 
 function prepararApps() {
@@ -484,6 +539,7 @@ async function init() {
   }
 
   iniciarRecetas({ store, getState: () => state, accion, refrescar });
+  iniciarReparto({ store, getState: () => state, accion });
 
   if (store.mode === 'supabase') {
     const salir = $('#btn-salir');

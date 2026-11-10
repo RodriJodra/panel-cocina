@@ -45,11 +45,23 @@ create table if not exists public.recetas (
   actualizado  timestamptz not null default now()
 );
 
+-- Historial: quién ha hecho cada tarea y cuándo (para la vista Reparto).
+-- Guarda el texto para que el historial siga aunque se borre la tarea.
+create table if not exists public.hechos (
+  id       uuid primary key default gen_random_uuid(),
+  tarea_id uuid,
+  texto    text not null,
+  persona  text,
+  fecha    timestamptz not null default now()
+);
+create index if not exists hechos_fecha_idx on public.hechos (fecha);
+
 -- Seguridad: solo usuarios con sesión iniciada pueden leer y escribir.
 -- Crea vuestras dos cuentas y desactiva los registros nuevos (ver README).
 alter table public.items   enable row level security;
 alter table public.menu    enable row level security;
 alter table public.recetas enable row level security;
+alter table public.hechos  enable row level security;
 
 drop policy if exists "casa puede todo en items" on public.items;
 create policy "casa puede todo en items" on public.items
@@ -57,6 +69,10 @@ create policy "casa puede todo en items" on public.items
 
 drop policy if exists "casa puede todo en menu" on public.menu;
 create policy "casa puede todo en menu" on public.menu
+  for all to authenticated using (true) with check (true);
+
+drop policy if exists "casa puede todo en hechos" on public.hechos;
+create policy "casa puede todo en hechos" on public.hechos
   for all to authenticated using (true) with check (true);
 
 drop policy if exists "casa puede todo en recetas" on public.recetas;
@@ -67,7 +83,7 @@ create policy "casa puede todo en recetas" on public.recetas
 do $$
 declare t text;
 begin
-  foreach t in array array['items', 'menu', 'recetas'] loop
+  foreach t in array array['items', 'menu', 'recetas', 'hechos'] loop
     begin
       execute format('alter publication supabase_realtime add table public.%I', t);
     exception when duplicate_object then null;

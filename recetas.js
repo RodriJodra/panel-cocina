@@ -51,6 +51,8 @@ const receta = (id) => ctx.getState().recetas.find((r) => r.id === id);
 
 export function abrirRecetas(id) {
   $('#panel').hidden = true;
+  $('#vista-reparto').hidden = true;
+  $('#btn-reparto-top')?.classList.remove('activo');
   $('#vista-recetas').hidden = false;
   $('#btn-recetas').classList.add('activo');
   if (id) seleccion = { tipo: 'receta', id };

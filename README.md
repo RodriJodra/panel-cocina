@@ -4,6 +4,7 @@ Web app (PWA) para la tablet de la cocina:
 
 - **Agenda** con los eventos de vuestros calendarios de Google (hoy y próximos días).
 - **Tareas**, con responsable y **repetición** (diaria, cada 2–3 días, semanal, quincenal o mensual).
+- **Reparto**: a quién le toca cada tarea, quién ha hecho qué, recuento por persona y evolución semanal.
 - **Notas** rápidas.
 - **Menú de la semana**, enlazado con las recetas.
 - **Recetas**: recetario propio, importación desde webs de recetas e **ingredientes de la semana** listos para dictárselos a Alexa.
@@ -95,6 +96,8 @@ Funciona con la mayoría de webs de recetas (las que publican la receta en forma
 ## Cómo se usa
 
 - **Tareas que se repiten:** elige la frecuencia en el desplegable al crearla. Al marcarla desaparece y vuelve cuando toca (la verás en *Próximamente*). Las diarias y "cada X días" cuentan desde que se hacen; las semanales y mensuales mantienen su día. Para borrar una tarea: **Editar**.
+- **¿Quién lo ha hecho?** Al marcar una tarea, elige Rodrigo, Sara o Los dos (se resalta a quien le tocaba). Si te equivocas, desmárcala o quítala del historial en *Reparto*.
+- **Reparto:** en la tarjeta de Tareas, **Reparto ›**. Cambia entre esta semana, este mes y los últimos 3 meses. Toca una tarea en *A quién le toca* para pasársela al otro.
 - **Menú y recetas:** escribe en el menú el nombre de una receta guardada (te lo sugiere al escribir) y aparece 📖 para abrirla.
 - **Ingredientes de la semana:** en Recetas. Marca lo que ya tenéis y lee en voz alta la frase de Alexa que se genera con lo que falta.
 - **Modo cocina:** en una receta, **▶ Cocinar**. Primero la lista de ingredientes, luego un paso por pantalla. Desliza o usa los botones para avanzar; los tiempos del paso ("hornea 25 minutos") aparecen como botones de temporizador.

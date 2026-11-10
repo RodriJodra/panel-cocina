@@ -63,6 +63,7 @@
           <div>
             <button class="btn-texto" type="button" data-limpiar="tareas" hidden>Quitar hechas</button>
             <button class="btn-texto" type="button" id="btn-editar-tareas">Editar</button>
+            <button class="btn-texto btn-reparto" type="button" id="btn-reparto">Reparto ›</button>
           </div>
         </header>
         <form class="nuevo nuevo-tarea" data-lista="tareas">
@@ -128,6 +129,9 @@
     <article class="tarjeta receta-detalle" id="receta-detalle"></article>
   </main>
 
+  <!-- ── Reparto de tareas ───────────────────────────────── -->
+  <main id="vista-reparto" class="reparto" hidden></main>
+
   <!-- ── Modo cocina ─────────────────────────────────────── -->
   <div id="cocina" class="cocina" hidden>
     <header class="cocina-cab">
@@ -160,6 +164,16 @@
     <div class="hoja-caja" role="dialog" aria-modal="true" aria-labelledby="h-ver">
       <h2 id="h-ver">¿Qué ponemos?</h2>
       <div id="apps-ver" class="apps-ver"></div>
+    </div>
+  </div>
+
+  <!-- ── ¿Quién lo ha hecho? ─────────────────────────────── -->
+  <div id="hoja-quien" class="hoja" hidden>
+    <div class="hoja-caja hoja-quien" role="dialog" aria-modal="true" aria-labelledby="h-quien">
+      <h2 id="h-quien">¿Quién lo ha hecho?</h2>
+      <p id="quien-tarea" class="quien-tarea"></p>
+      <div id="quien-opciones" class="quien-opciones"></div>
+      <button id="quien-cancelar" class="btn-texto" type="button">Cancelar</button>
     </div>
   </div>
 
